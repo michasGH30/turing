@@ -15,12 +15,16 @@ arrow.calculate(circle.ret_rect(), circle.ret_r(), circle2.ret_rect(), circle2.r
 # on start calculate line to divide
 divide_line.calculate(pygame.Rect(0, 500, 0, 0), 0, pygame.Rect(1000, 500, 0, 0), 0)
 
+vertical_divide_line = turing.Line(700, 0, 700, 500)
+
 # areas
 areas = []
 # creating areas
 for i in range(0, 25):
-    areas.append(turing.Area(i*40, i, 0))
+    areas.append(turing.Area(i * 40, i, 0))
 
+textBox = turing.TextInput(pygame.Rect(100, 600, 200, 50), "Write")
+button = turing.Button(pygame.Rect(100, 675, 20, 20), "+")
 
 while turing.running:
     for event in pygame.event.get():
@@ -32,20 +36,20 @@ while turing.running:
             # escape as quit
             if event.key == pygame.K_ESCAPE:
                 turing.running = False
-            # to test head
-            if event.key == pygame.K_d:
-                head.move(1)
-            if event.key == pygame.K_a:
-                head.move(-1)
+            textBox.write(event)
 
     # testing if mouse is in circle
     circle.mouse_in(pygame.mouse.get_pos())
     circle2.mouse_in(pygame.mouse.get_pos())
+    textBox.mouse_in(pygame.mouse.get_pos())
+    button.mouse_in(pygame.mouse.get_pos())
 
     # checking mouse keys
     click = pygame.mouse.get_pressed()
     circle.check_mouse(click)
     circle2.check_mouse(click)
+    textBox.check_mouse(click)
+    button.check_mouse(click)
 
     # moving circles and calculate line
     circle.move(pygame.mouse.get_pos(), circle2.ret_rect())
@@ -65,7 +69,10 @@ while turing.running:
     head.draw()
     for a in areas:
         a.draw()
+    vertical_divide_line.draw()
 
+    textBox.draw()
+    button.draw()
     # just display
     pygame.display.flip()
     # quit if running is False

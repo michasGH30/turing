@@ -1,4 +1,5 @@
 import pygame
+
 pygame.init()
 
 screen = pygame.display.set_mode([1000, 700])
@@ -20,7 +21,8 @@ class Circle:
     def draw(self):
         pygame.draw.circle(screen, (0, 0, 255), self.pos, self.r)
         self.t = font.render(self.name, True, (255, 255, 255))
-        screen.blit(self.t, (self.rect.x + self.r - self.t.get_width()/2, self.rect.y + self.r - self.t.get_height()/2))
+        screen.blit(self.t,
+                    (self.rect.x + self.r - self.t.get_width() / 2, self.rect.y + self.r - self.t.get_height() / 2))
         if self.moving:
             pygame.draw.circle(screen, (255, 0, 0), self.pos, self.r, 10)
 
@@ -48,7 +50,8 @@ class Circle:
         return inside, where
 
     def mouse_in(self, mouse_pos):
-        if self.rect.x <= mouse_pos[0] <= self.rect.x + self.rect.h and self.rect.y <= mouse_pos[1] <= self.rect.y + self.rect.w:
+        if self.rect.x <= mouse_pos[0] <= self.rect.x + self.rect.h and self.rect.y <= mouse_pos[
+            1] <= self.rect.y + self.rect.w:
             self.inside = True
         else:
             self.inside = False
@@ -61,7 +64,7 @@ class Circle:
 
     def move(self, mouse_pos, rect):
         if self.moving:
-            if mouse_pos[0] - self.r >= 0 and mouse_pos[0] + self.r <= 1000 and mouse_pos[1] - self.r >= 0 \
+            if mouse_pos[0] - self.r >= 0 and mouse_pos[0] + self.r <= 700 and mouse_pos[1] - self.r >= 0 \
                     and mouse_pos[1] + self.r <= 500:
                 check = self.collision(rect)
                 if not check[0]:
@@ -118,10 +121,8 @@ class Area:
             screen.blit(self.t, (self.rect.x + self.t.get_width() / 3, 530 + self.t.get_height() / 5))
         else:
             self.t = font.render(str(self.num), True, (255, 0, 0))
-            if self.num == 1:
-                screen.blit(self.t, (self.rect.x + self.t.get_width(), 530 + self.t.get_height() / 5))
-            elif self.num == 0:
-                screen.blit(self.t, (self.rect.x + self.t.get_width()/1.5, 530 + self.t.get_height() / 5))
+            screen.blit(self.t,
+                        (self.rect.x + 20 - (self.t.get_width() / 2), self.rect.y + 20 - (self.t.get_height() / 2)))
 
 
 class Head:
@@ -145,3 +146,75 @@ class Head:
             self.x1 = self.x1 - 40
             self.x2 = self.x2 - 40
             self.x3 = self.x3 - 40
+
+
+class TextInput:
+    def __init__(self, rect, label):
+        self.rect = rect
+        self.text = ''
+        self.text_tex = None
+        self.active = False
+        self.inside = False
+        self.label = label
+        self.label_tex = None
+
+    def mouse_in(self, mpos):
+        if self.rect.x < mpos[0] < self.rect.x + self.rect.w and self.rect.y < mpos[1] < self.rect.y + self.rect.h:
+            self.inside = True
+        else:
+            self.inside = False
+
+    def check_mouse(self, c):
+        if c == (1, 0, 0) and self.inside:
+            self.active = True
+        elif c == (1, 0, 0) and not self.inside:
+            self.active = False
+
+    def draw(self):
+        self.label_tex = font.render(self.label, True, (255, 255, 255))
+        screen.blit(self.label_tex, (self.rect.x, self.rect.y))
+        if self.active:
+            pygame.draw.rect(screen, (255, 0, 0),
+                             (self.rect.x + self.label_tex.get_width() + 10, self.rect.y, self.rect.w, self.rect.h), 1)
+        elif not self.active:
+            pygame.draw.rect(screen, (255, 255, 255),
+                             (self.rect.x + self.label_tex.get_width() + 10, self.rect.y, self.rect.w, self.rect.h), 1)
+        self.text_tex = font.render(self.text, True, (255, 255, 255))
+        screen.blit(self.text_tex, (self.rect.x + 15 + self.label_tex.get_width(), self.rect.y + 5))
+
+    def write(self, e):
+        if self.active:
+            if e.key == pygame.K_BACKSPACE:
+                self.text = self.text[:-1]
+            else:
+                self.text = self.text + e.unicode
+
+
+class Button:
+    def __init__(self, rect, text):
+        self.rect = rect
+        self.text = text
+        self.text_tex = font.render(self.text, True, (255, 255, 255))
+        self.inside = False
+        self.active = False
+
+    def mouse_in(self, mpos):
+        if self.rect.x < mpos[0] < self.rect.x + self.rect.w and self.rect.y < mpos[1] < self.rect.y + self.rect.h:
+            self.inside = True
+        else:
+            self.inside = False
+
+    def check_mouse(self, c):
+        if c == (1, 0, 0) and self.inside:
+            self.active = True
+        elif c == (1, 0, 0) and not self.inside:
+            self.active = False
+
+    def draw(self):
+        if self.active:
+            pygame.draw.rect(screen, (255, 0, 0), self.rect, 255)
+        else:
+            pygame.draw.rect(screen, (255, 255, 255), self.rect, 255)
+
+        screen.blit(self.text_tex, (self.rect.x - 5, self.rect.y - 5))
+
