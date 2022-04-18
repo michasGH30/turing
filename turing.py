@@ -4,6 +4,7 @@ pygame.init()
 
 screen = pygame.display.set_mode([1000, 700])
 font = pygame.font.SysFont("comicsansms", 30)
+font2 = pygame.font.SysFont("comicsansms", 60)
 
 running = True
 
@@ -17,6 +18,10 @@ class Circle:
         self.inside = False
         self.name = name
         self.t = None
+        self.write_textinput = TextInput(pygame.Rect(100, 600, 50, 50), "Write")
+        self.move_textinput = TextInput(pygame.Rect(300, 600, 50, 50), "Move")
+        self.change_state_textinput = TextInput(pygame.Rect(500, 600, 50, 50), "Change state")
+        self.button = Button(pygame.Rect(800, 600, 50, 50), "+")
 
     def draw(self):
         pygame.draw.circle(screen, (0, 0, 255), self.pos, self.r)
@@ -25,6 +30,10 @@ class Circle:
                     (self.rect.x + self.r - self.t.get_width() / 2, self.rect.y + self.r - self.t.get_height() / 2))
         if self.moving:
             pygame.draw.circle(screen, (255, 0, 0), self.pos, self.r, 10)
+            self.write_textinput.draw()
+            self.move_textinput.draw()
+            self.change_state_textinput.draw()
+            self.button.draw()
 
     def ret_rect(self):
         return self.rect
@@ -35,7 +44,8 @@ class Circle:
     def collision(self, rect):
         inside = False
         where = 0
-        if rect.x <= self.rect.x + self.rect.w <= rect.x + rect.w and rect.y <= self.rect.y + self.rect.h <= rect.y + rect.h:
+        if rect.x <= self.rect.x + self.rect.w <= rect.x + rect.w \
+                and rect.y <= self.rect.y + self.rect.h <= rect.y + rect.h:
             inside = True
             where = -1
         if rect.x <= self.rect.x + self.rect.w <= rect.x + rect.w and rect.y <= self.rect.y <= rect.y + rect.h:
@@ -49,18 +59,26 @@ class Circle:
             where = 2
         return inside, where
 
-    def mouse_in(self, mouse_pos):
-        if self.rect.x <= mouse_pos[0] <= self.rect.x + self.rect.h and self.rect.y <= mouse_pos[
-            1] <= self.rect.y + self.rect.w:
-            self.inside = True
-        else:
-            self.inside = False
+    def check_active(self, mpos, c):
+        if self.rect.x < mpos[0] < self.rect.x + self.rect.w and self.rect.y < mpos[1] < self.rect.y + self.rect.h:
+            if c == (1, 0, 0):
+                if not self.moving:
+                    self.moving = True
+            elif c == (0, 0, 1):
+                if self.moving:
+                    self.moving = False
 
-    def check_mouse(self, c):
-        if c == (1, 0, 0) and self.inside:
-            self.moving = True
-        if c == (0, 0, 1) and self.inside:
-            self.moving = False
+    def text_box_and_button(self, mpos, c, e):
+        self.write_textinput.check_active(mpos, c)
+        self.write_textinput.write(e)
+
+        self.move_textinput.check_active(mpos, c)
+        self.move_textinput.write(e)
+
+        self.change_state_textinput.check_active(mpos, c)
+        self.change_state_textinput.write(e)
+
+        self.button.check_active(mpos, c)
 
     def move(self, mouse_pos, rect):
         if self.moving:
@@ -152,26 +170,22 @@ class TextInput:
     def __init__(self, rect, label):
         self.rect = rect
         self.text = ''
-        self.text_tex = None
+        self.text_tex = font.render(self.text, True, (255, 255, 255))
         self.active = False
-        self.inside = False
-        self.label = label
-        self.label_tex = None
+        self.label_tex = font.render(label, True, (255, 255, 255))
 
-    def mouse_in(self, mpos):
-        if self.rect.x < mpos[0] < self.rect.x + self.rect.w and self.rect.y < mpos[1] < self.rect.y + self.rect.h:
-            self.inside = True
+    def check_active(self, mpos, c):
+        if self.rect.x + self.label_tex.get_width() < mpos[0] < self.rect.x + self.label_tex.get_width() + self.rect.w \
+                and self.rect.y < mpos[1] < self.rect.y + self.rect.h:
+            if c == (1, 0, 0):
+                if not self.active:
+                    self.active = True
         else:
-            self.inside = False
-
-    def check_mouse(self, c):
-        if c == (1, 0, 0) and self.inside:
-            self.active = True
-        elif c == (1, 0, 0) and not self.inside:
-            self.active = False
+            if c == (1, 0, 0):
+                if self.active:
+                    self.active = False
 
     def draw(self):
-        self.label_tex = font.render(self.label, True, (255, 255, 255))
         screen.blit(self.label_tex, (self.rect.x, self.rect.y))
         if self.active:
             pygame.draw.rect(screen, (255, 0, 0),
@@ -180,34 +194,28 @@ class TextInput:
             pygame.draw.rect(screen, (255, 255, 255),
                              (self.rect.x + self.label_tex.get_width() + 10, self.rect.y, self.rect.w, self.rect.h), 1)
         self.text_tex = font.render(self.text, True, (255, 255, 255))
-        screen.blit(self.text_tex, (self.rect.x + 15 + self.label_tex.get_width(), self.rect.y + 5))
+        screen.blit(self.text_tex, (self.rect.x + 28 + self.label_tex.get_width(), self.rect.y + 1))
 
     def write(self, e):
         if self.active:
             if e.key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
             else:
-                self.text = self.text + e.unicode
+                if len(self.text) < 1:
+                    self.text = self.text + e.unicode
 
 
 class Button:
     def __init__(self, rect, text):
         self.rect = rect
-        self.text = text
-        self.text_tex = font.render(self.text, True, (255, 255, 255))
-        self.inside = False
+        self.text_tex = font2.render(text, True, (0, 0, 0))
         self.active = False
 
-    def mouse_in(self, mpos):
+    def check_active(self, mpos, c):
         if self.rect.x < mpos[0] < self.rect.x + self.rect.w and self.rect.y < mpos[1] < self.rect.y + self.rect.h:
-            self.inside = True
-        else:
-            self.inside = False
-
-    def check_mouse(self, c):
-        if c == (1, 0, 0) and self.inside:
             self.active = True
-        elif c == (1, 0, 0) and not self.inside:
+            # if c == (1, 0, 0)
+        else:
             self.active = False
 
     def draw(self):
@@ -216,5 +224,5 @@ class Button:
         else:
             pygame.draw.rect(screen, (255, 255, 255), self.rect, 255)
 
-        screen.blit(self.text_tex, (self.rect.x - 5, self.rect.y - 5))
-
+        screen.blit(self.text_tex, (self.rect.x + self.text_tex.get_width()/2.5,
+                                    self.rect.y - self.text_tex.get_height()/4))
