@@ -48,8 +48,9 @@ class Circle:
 
         if len(self.write_list) > 0 and (self.moving or (not self.moving and self.active)):
             for i in range(0, len(self.write_list)):
-                self.to_render = font.render(str(self.write_list[i] + ' ' + self.move_list[i] + ' ' + self.change_list[i]),
-                                             True, (255, 255, 255))
+                self.to_render = font.render(
+                    str(self.write_list[i] + ' ' + self.move_list[i] + ' ' + self.change_list[i]),
+                    True, (255, 255, 255))
                 screen.blit(self.to_render, (750, i * self.to_render.get_height() + 5))
 
     def ret_rect(self):
@@ -180,12 +181,12 @@ class Head:
     def draw(self):
         pygame.draw.polygon(screen, (255, 255, 255), ((self.x1, self.y1), (self.x2, self.y2), (self.x3, self.y3)))
 
-    def move(self, dir):
-        if dir == 1 and self.x1 + 40 < 1000:
+    def move(self, direction):
+        if direction == 1 and self.x1 + 40 < 1000:
             self.x1 = self.x1 + 40
             self.x2 = self.x2 + 40
             self.x3 = self.x3 + 40
-        elif dir == -1 and self.x1 - 40 >= 0:
+        elif direction == -1 and self.x1 - 40 >= 0:
             self.x1 = self.x1 - 40
             self.x2 = self.x2 - 40
             self.x3 = self.x3 - 40
@@ -213,8 +214,8 @@ class TextInput:
 
     def start_menu_update(self):
         if self.start:
-            if self.text_tex.get_width() > 180:
-                self.rect.w = self.text_tex.get_width() + 30
+            if self.text_tex.get_width() + 10 >= self.rect.w - 28:
+                self.rect.w = self.rect.w + 10
 
     def draw(self):
         screen.blit(self.label_tex, (self.rect.x, self.rect.y))
@@ -272,8 +273,29 @@ class Button:
             pygame.draw.rect(screen, (255, 255, 255), self.rect, 255)
 
         if self.font_size == 2:
-            screen.blit(self.text_tex, (self.rect.x + self.text_tex.get_width()/2.5,
-                                    self.rect.y - self.text_tex.get_height()/4))
+            screen.blit(self.text_tex, (self.rect.x + self.text_tex.get_width() / 2.5,
+                                        self.rect.y - self.text_tex.get_height() / 4))
         elif self.font_size == 1:
-            screen.blit(self.text_tex, (self.rect.x + self.text_tex.get_width()/2,
-                                    self.rect.y + self.text_tex.get_height()/10))
+            screen.blit(self.text_tex, (self.rect.x + self.text_tex.get_width() / 2,
+                                        self.rect.y + self.text_tex.get_height() / 10))
+
+
+class StartMenu:
+    def __init__(self):
+        self.input_data = TextInput(pygame.Rect(0, 600, 200, 50), "Entry", True)
+        self.start_button = Button(pygame.Rect(700, 600, 200, 50), "START", 1)
+
+    def check_active(self, mpos, c):
+        self.input_data.check_active(mpos, c)
+        self.start_button.check_active(mpos, c)
+
+    def write(self, e):
+        self.input_data.write(e)
+
+    def update(self):
+        self.input_data.start_menu_update()
+
+    def draw(self):
+        self.input_data.draw()
+        self.start_button.draw()
+

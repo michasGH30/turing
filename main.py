@@ -2,7 +2,7 @@ import pygame
 import turing
 
 # circles
-circles = [turing.Circle(250, 250, 50, "q0"), turing.Circle(500, 250, 50, "q1")]
+circles = [turing.Circle(250, 250, 50, "q0"), turing.Circle(500, 250, 50, "qy")]
 # arrow to connect
 line = turing.Line(0, 0, 0, 0)
 # line that divide screen
@@ -22,17 +22,15 @@ areas = []
 for i in range(0, 25):
     areas.append(turing.Area(i * 40, i, 0))
 
-# input data to operate
-input_data = turing.TextInput(pygame.Rect(0, 600, 200, 50), "Entry", True)
-start_button = turing.Button(pygame.Rect(700, 600, 200, 50), "START", 1)
+# start menu
+start_menu = turing.StartMenu()
 
 while turing.running:
     # get mouse buttons click
     click = pygame.mouse.get_pressed()
     circles[0].check_active(pygame.mouse.get_pos(), click)
     circles[1].check_active(pygame.mouse.get_pos(), click)
-    input_data.check_active(pygame.mouse.get_pos(), click)
-    start_button.check_active(pygame.mouse.get_pos(), click)
+    start_menu.check_active(pygame.mouse.get_pos(), click)
 
     # events
     for event in pygame.event.get():
@@ -47,10 +45,11 @@ while turing.running:
 
         # for state textboxes and button check
         circles[0].text_box_and_button(pygame.mouse.get_pos(), click, event)
-        input_data.write(event)
+        # for textinput event
+        start_menu.write(event)
 
-    # check and change text input rect width
-    input_data.start_menu_update()
+    # update textinput width
+    start_menu.update()
 
     # moving circles and calculate line
     circles[0].move(pygame.mouse.get_pos(), circles[1].ret_rect())
@@ -75,8 +74,7 @@ while turing.running:
     vertical_divide_line.draw()
 
     # draw start menu
-    input_data.draw()
-    start_button.draw()
+    start_menu.draw()
 
     # just display
     pygame.display.flip()
