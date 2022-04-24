@@ -1,10 +1,16 @@
 import pygame
 
 pygame.init()
-
-screen = pygame.display.set_mode([1000, 700])
+WIDTH = 1000
+HEIGHT = 700
+screen = pygame.display.set_mode([WIDTH, HEIGHT])
 font = pygame.font.SysFont("comicsansms", 30)
 font2 = pygame.font.SysFont("comicsansms", 60)
+WHITE = (255, 255, 255)
+BLUE = (0, 0, 255)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+BLACK = (0, 0, 0)
 
 running = True
 
@@ -28,29 +34,29 @@ class Circle:
         self.change_state_textinput = TextInput(pygame.Rect(300, 600, 50, 50), "Change state", False)
         self.button = Button(pygame.Rect(550, 600, 50, 50), "+", 2)
 
+    def draw_UI(self):
+        self.write_textinput.draw()
+        self.move_textinput.draw()
+        self.change_state_textinput.draw()
+        self.button.draw()
+
     def draw(self):
-        pygame.draw.circle(screen, (0, 0, 255), self.pos, self.r)
-        self.t = font.render(self.name, True, (255, 255, 255))
+        pygame.draw.circle(screen, BLUE, self.pos, self.r)
+        self.t = font.render(self.name, True, WHITE)
         screen.blit(self.t,
                     (self.rect.x + self.r - self.t.get_width() / 2, self.rect.y + self.r - self.t.get_height() / 2))
         if self.moving:
-            pygame.draw.circle(screen, (255, 0, 0), self.pos, self.r, 10)
-            self.write_textinput.draw()
-            self.move_textinput.draw()
-            self.change_state_textinput.draw()
-            self.button.draw()
+            pygame.draw.circle(screen, RED, self.pos, self.r, 10)
+            self.draw_UI()
         elif not self.moving and self.active:
-            pygame.draw.circle(screen, (255, 255, 0), self.pos, self.r, 10)
-            self.write_textinput.draw()
-            self.move_textinput.draw()
-            self.change_state_textinput.draw()
-            self.button.draw()
+            pygame.draw.circle(screen, YELLOW, self.pos, self.r, 10)
+            self.draw_UI()
 
         if len(self.write_list) > 0 and (self.moving or (not self.moving and self.active)):
             for i in range(0, len(self.write_list)):
                 self.to_render = font.render(
                     str(self.write_list[i] + ' ' + self.move_list[i] + ' ' + self.change_list[i]),
-                    True, (255, 255, 255))
+                    True, WHITE)
                 screen.blit(self.to_render, (750, i * self.to_render.get_height() + 5))
 
     def ret_rect(self):
@@ -148,7 +154,7 @@ class Line:
         self.end_pos = (rect2.x, rect2.y + r2)
 
     def draw(self):
-        pygame.draw.line(screen, (255, 255, 255), self.start_pos, self.end_pos, 5)
+        pygame.draw.line(screen, WHITE, self.start_pos, self.end_pos, 5)
 
 
 class Area:
@@ -159,12 +165,12 @@ class Area:
         self.num = num
 
     def draw(self):
-        pygame.draw.rect(screen, (255, 255, 255), self.rect, 5)
+        pygame.draw.rect(screen, WHITE, self.rect, 5)
         if self.id == 0 or self.id == 24:
-            self.t = font.render("#", True, (255, 0, 0))
+            self.t = font.render("#", True, RED)
             screen.blit(self.t, (self.rect.x + self.t.get_width() / 3, 530 + self.t.get_height() / 5))
         else:
-            self.t = font.render(str(self.num), True, (255, 0, 0))
+            self.t = font.render(str(self.num), True, RED)
             screen.blit(self.t,
                         (self.rect.x + 20 - (self.t.get_width() / 2), self.rect.y + 20 - (self.t.get_height() / 2)))
 
@@ -179,7 +185,7 @@ class Head:
         self.y3 = y3
 
     def draw(self):
-        pygame.draw.polygon(screen, (255, 255, 255), ((self.x1, self.y1), (self.x2, self.y2), (self.x3, self.y3)))
+        pygame.draw.polygon(screen, WHITE, ((self.x1, self.y1), (self.x2, self.y2), (self.x3, self.y3)))
 
     def move(self, direction):
         if direction == 1 and self.x1 + 40 < 1000:
@@ -196,10 +202,11 @@ class TextInput:
     def __init__(self, rect, label, start):
         self.rect = rect
         self.text = ''
-        self.text_tex = font.render(self.text, True, (255, 255, 255))
+        self.text_tex = font.render(self.text, True, WHITE)
         self.active = False
-        self.label_tex = font.render(label, True, (255, 255, 255))
+        self.label_tex = font.render(label, True, WHITE)
         self.start = start
+        self.color = None
 
     def check_active(self, mpos, c):
         if self.rect.x + self.label_tex.get_width() < mpos[0] < self.rect.x + self.label_tex.get_width() + self.rect.w \
@@ -220,12 +227,13 @@ class TextInput:
     def draw(self):
         screen.blit(self.label_tex, (self.rect.x, self.rect.y))
         if self.active:
-            pygame.draw.rect(screen, (255, 0, 0),
-                             (self.rect.x + self.label_tex.get_width() + 10, self.rect.y, self.rect.w, self.rect.h), 1)
+            self.color = RED
         elif not self.active:
-            pygame.draw.rect(screen, (255, 255, 255),
-                             (self.rect.x + self.label_tex.get_width() + 10, self.rect.y, self.rect.w, self.rect.h), 1)
-        self.text_tex = font.render(self.text, True, (255, 255, 255))
+            self.color = WHITE
+
+        pygame.draw.rect(screen, self.color, (self.rect.x + self.label_tex.get_width() + 10,
+                                              self.rect.y, self.rect.w, self.rect.h), 1)
+        self.text_tex = font.render(self.text, True, WHITE)
         screen.blit(self.text_tex, (self.rect.x + 28 + self.label_tex.get_width(), self.rect.y + 1))
 
     def ret_text(self):
@@ -252,9 +260,9 @@ class Button:
         self.active = False
         self.font_size = font_s
         if self.font_size == 1:
-            self.text_tex = font.render(text, True, (0, 0, 0))
+            self.text_tex = font.render(text, True, BLACK)
         elif self.font_size == 2:
-            self.text_tex = font2.render(text, True, (0, 0, 0))
+            self.text_tex = font2.render(text, True, BLACK)
 
     def check_active(self, mpos, c):
         if self.rect.x < mpos[0] < self.rect.x + self.rect.w and self.rect.y < mpos[1] < self.rect.y + self.rect.h:
@@ -268,9 +276,9 @@ class Button:
 
     def draw(self):
         if self.active:
-            pygame.draw.rect(screen, (255, 0, 0), self.rect, 255)
+            pygame.draw.rect(screen, RED, self.rect, 255)
         else:
-            pygame.draw.rect(screen, (255, 255, 255), self.rect, 255)
+            pygame.draw.rect(screen, WHITE, self.rect, 255)
 
         if self.font_size == 2:
             screen.blit(self.text_tex, (self.rect.x + self.text_tex.get_width() / 2.5,
@@ -298,4 +306,3 @@ class StartMenu:
     def draw(self):
         self.input_data.draw()
         self.start_button.draw()
-
