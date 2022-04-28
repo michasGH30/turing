@@ -20,17 +20,21 @@ vertical_divide_line = turing.Line(700, 0, 700, 500)
 areas = []
 # creating areas
 for i in range(0, 25):
-    areas.append(turing.Area(i * 40, i, 0))
+    areas.append(turing.Area(i * 40, i, '#'))
+head.move(1)
 
 # start menu
 start_menu = turing.StartMenu()
+
+start_algorythm = False
 
 while turing.running:
     # get mouse buttons click
     click = pygame.mouse.get_pressed()
     circles[0].check_active(pygame.mouse.get_pos(), click)
     circles[1].check_active(pygame.mouse.get_pos(), click)
-    start_menu.check_active(pygame.mouse.get_pos(), click)
+    if start_menu.check_active(pygame.mouse.get_pos(), click):
+        start_algorythm = True
 
     # events
     for event in pygame.event.get():
@@ -45,8 +49,11 @@ while turing.running:
 
         # for state textboxes and button check
         circles[0].text_box_and_button(pygame.mouse.get_pos(), click, event)
+        circles[1].text_box_and_button(pygame.mouse.get_pos(), click, event)
         # for textinput event
-        start_menu.write(event)
+        start_menu_active = circles[0].ret_active()
+        if not start_menu_active[0] and not start_menu_active[1]:
+            start_menu.write(event)
 
     # update textinput width
     start_menu.update()
@@ -55,6 +62,20 @@ while turing.running:
     circles[0].move(pygame.mouse.get_pos(), circles[1].ret_rect())
     circles[1].move(pygame.mouse.get_pos(), circles[0].ret_rect())
     line.calculate(circles[0].ret_rect(), circles[0].ret_r(), circles[1].ret_rect(), circles[1].ret_r())
+
+    start_menu.set_to_draw(True)
+
+    hide_menu = circles[0].ret_active()
+    if hide_menu[0] or hide_menu[1]:
+        start_menu.set_to_draw(False)
+
+    hide_menu = circles[1].ret_active()
+    if hide_menu[0] or hide_menu[1]:
+        start_menu.set_to_draw(False)
+
+    if start_algorythm:
+        if circles[0].do_algorythm("1") == 1:
+            head.move(1)
 
     # fill screen with black color
     turing.screen.fill((0, 0, 0))
