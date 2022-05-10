@@ -30,37 +30,35 @@ class Circle:
         self.t = None
         # lists of algorythm things
         self.to_render = None
+        self.on_c_list = []
         self.write_list = []
         self.move_list = []
         self.change_list = []
         # UI
-        self.write_textinput = TextInput(pygame.Rect(0, 600, 50, 50), "Write", False)
-        self.move_textinput = TextInput(pygame.Rect(150, 600, 50, 50), "Move", False)
-        self.change_state_textinput = TextInput(pygame.Rect(300, 600, 50, 50), "Change state", False)
-        self.button = Button(pygame.Rect(550, 600, 50, 50), "+", 2)
+        self.on_c_textinput = TextInput(pygame.Rect(0, 600, 50, 50), "On", False)
+        self.write_textinput = TextInput(pygame.Rect(110, 600, 50, 50), "Write", False)
+        self.move_textinput = TextInput(pygame.Rect(260, 600, 50, 50), "Move", False)
+        self.change_state_textinput = TextInput(pygame.Rect(410, 600, 50, 50), "Change state", False)
+        self.button = Button(pygame.Rect(660, 600, 50, 50), "+", 2)
         self.input_error = font.render("Complete all fields", True, RED)
         # check all inputs is entered
         self.draw_error = False
+        self.on_c_entered = False
         self.write_entered = False
         self.move_entered = False
         self.change_state_entered = False
-
-    def do_algorythm(self, m):
-        if m in self.write_list:
-            if self.move_list[0] == "1":
-                return 1
-        return 0
 
     def ret_active(self):
         return self.active, self.moving
 
     def draw_UI(self):
+        self.on_c_textinput.draw()
         self.write_textinput.draw()
         self.move_textinput.draw()
         self.change_state_textinput.draw()
         self.button.draw()
         if self.draw_error:
-            screen.blit(self.input_error, (625, 600))
+            screen.blit(self.input_error, (720, 600))
 
     def draw(self):
         pygame.draw.circle(screen, BLUE, self.pos, self.r)
@@ -77,8 +75,8 @@ class Circle:
         if len(self.write_list) > 0 and (self.moving or (not self.moving and self.active)) and not self.draw_error:
             for i in range(0, len(self.write_list)):
                 self.to_render = font.render(
-                    str('W: ' + self.write_list[i] + ' M: ' + self.move_list[i] + ' S: ' + self.change_list[i]),
-                    True, WHITE)
+                    str('ON: ' + self.on_c_list[i] + ' W: ' + self.write_list[i] + ' M: ' + self.move_list[i] + ' S: ' +
+                        self.change_list[i]), True, WHITE)
                 screen.blit(self.to_render, (705, i * self.to_render.get_height() + 5))
 
     def ret_rect(self):
@@ -120,6 +118,9 @@ class Circle:
                 self.active = False
 
     def text_box_and_button(self, mpos, c, e):
+        self.on_c_textinput.check_active(mpos, c)
+        self.on_c_textinput.write(e)
+
         self.write_textinput.check_active(mpos, c)
         self.write_textinput.write(e)
 
@@ -136,6 +137,8 @@ class Circle:
         self.change_state_entered = False
 
         if self.button.check_active(mpos, c):
+            if self.on_c_textinput.ret_len() > 0:
+                self.on_c_entered = True
             if self.write_textinput.ret_len() > 0:
                 self.write_entered = True
             if self.move_textinput.ret_len() > 0:
@@ -143,7 +146,8 @@ class Circle:
             if self.change_state_textinput.ret_len() > 0:
                 self.change_state_entered = True
 
-            if self.write_entered and self.move_entered and self.change_state_entered:
+            if self.on_c_entered and self.write_entered and self.move_entered and self.change_state_entered:
+                self.on_c_list.append(self.on_c_textinput.ret_text())
                 self.write_list.append(self.write_textinput.ret_text())
                 self.move_list.append(self.move_textinput.ret_text())
                 self.change_list.append(self.change_state_textinput.ret_text())
@@ -181,6 +185,9 @@ class Circle:
                         self.rect.y = self.pos[1] - self.r
                         pygame.mouse.set_pos(mouse_pos[0] + 5, mouse_pos[1] + 5)
 
+    def ret_lists(self):
+        return self.on_c_list, self.write_list, self.move_list, self.change_list
+
 
 class Line:
     def __init__(self, x1, y1, x2, y2):
@@ -211,6 +218,12 @@ class Area:
             self.t = font.render(str(self.num), True, RED)
             screen.blit(self.t,
                         (self.rect.x + 20 - (self.t.get_width() / 2), self.rect.y + 20 - (self.t.get_height() / 2)))
+
+    def ret_c(self):
+        return str(self.num)
+
+    def set_c(self, c):
+        self.num = c
 
 
 class Head:
@@ -355,3 +368,38 @@ class StartMenu:
         if self.to_draw:
             self.input_data.draw()
             self.start_button.draw()
+
+    def ret_input_data(self):
+        return list(self.input_data.ret_text())
+
+
+class Timer:
+    def __init__(self, n):
+        self.n = n
+        self.tick_start = 0
+
+    def start_timer(self):
+        self.tick_start = pygame.time.get_ticks()
+
+    def check(self):
+        if pygame.time.get_ticks() - self.tick_start >= self.n:
+            return True
+        return False
+
+
+class Algorithm:
+    def __init__(self):
+        self.timer = Timer(1000)
+        self.start = False
+        self.current_area_id = 1
+        self.current_circle_id = 0
+
+    def start_algorithm(self, areas_list, areas_entry):
+        print(areas_entry)
+        for i in range(0, len(areas_entry)):
+            areas_list[i + 1].set_c(areas_entry[i])
+        self.timer.start_timer()
+
+    def do_algorithm(self, areas_list, circles_list):
+        pass
+        # print(areas_list[self.current_area_id].ret_c())

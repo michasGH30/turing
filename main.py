@@ -26,7 +26,10 @@ head.move(1)
 # start menu
 start_menu = turing.StartMenu()
 
-start_algorythm = False
+start_algorithm = False
+do_algorithm = False
+
+algorithm = turing.Algorithm()
 
 while turing.running:
     # get mouse buttons click
@@ -34,7 +37,7 @@ while turing.running:
     circles[0].check_active(pygame.mouse.get_pos(), click)
     circles[1].check_active(pygame.mouse.get_pos(), click)
     if start_menu.check_active(pygame.mouse.get_pos(), click):
-        start_algorythm = True
+        start_algorithm = True
 
     # events
     for event in pygame.event.get():
@@ -55,6 +58,14 @@ while turing.running:
         if not start_menu_active[0] and not start_menu_active[1]:
             start_menu.write(event)
 
+    if start_algorithm:
+        algorithm.start_algorithm(areas, start_menu.ret_input_data())
+        start_algorithm = False
+        do_algorithm = True
+
+    if do_algorithm:
+        algorithm.do_algorithm(areas, circles)
+
     # update textinput width
     start_menu.update()
 
@@ -72,10 +83,6 @@ while turing.running:
     hide_menu = circles[1].ret_active()
     if hide_menu[0] or hide_menu[1]:
         start_menu.set_to_draw(False)
-
-    if start_algorythm:
-        if circles[0].do_algorythm("1") == 1:
-            head.move(1)
 
     # fill screen with black color
     turing.screen.fill((0, 0, 0))
